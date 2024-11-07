@@ -44,14 +44,15 @@ function App() {
 	const [isPaused, setIsPaused] = useState(false);
 	const [isProgressive, setIsProgressive] = useState(false); // Define se o cronômetro está em modo progressivo
 	const [timer, setTimer] = useState(0);
+	const [startTime, setStartTime] = useState(null); // Armazena o timestamp inicial
 	const [sessions, setSessions] = useState(JSON.parse(localStorage.getItem("sessions")) || []);
 	const [sessionCount, setSessionCount] = useState(sessions.length + 1);
 	const [predictedRestTime, setPredictedRestTime] = useState(0);
 	const [showRest, setShowRest] = useState(false);
 	const [isRest, setIsRest] = useState(false);
-	const [initialRestTime, setInitialRestTime] = useState(0); // Tempo inicial de descanso para contagem progressiva após zero
-	const [totalRestTime, setTotalRestTime] = useState(0); // Total de descanso, somando permitido e excedente
-	const [focusTimeSpent, setFocusTimeSpent] = useState(0); // Tempo total de foco utilizado na sessão
+	const [initialRestTime, setInitialRestTime] = useState(0);
+	const [totalRestTime, setTotalRestTime] = useState(0);
+	const [focusTimeSpent, setFocusTimeSpent] = useState(0);
 	const [lastDeletedSession, setLastDeletedSession] = useState(null);
 	const [hasAlerted, setHasAlerted] = useState(false);
 
@@ -81,18 +82,23 @@ function App() {
 		let interval = null;
 
 		if (isRunning && !isPaused) {
+			// Inicializa o timestamp de início ao iniciar o cronômetro
+			if (!startTime) setStartTime(Date.now());
+
 			interval = setInterval(() => {
-				if (timer > 0 && !isProgressive) {
-					setTimer((prevTimer) => prevTimer - 1);
-				} else if (timer === 0 && !isProgressive) {
-					setIsProgressive(true);
-					setTimer(isRest ? 0 : focusTime * 60);
-				} else if (isProgressive) {
-					setTimer((prevTimer) => prevTimer + 1);
+				const currentTime = Date.now();
+				const elapsedSeconds = Math.floor((currentTime - startTime) / 1000); // Calcula o tempo decorrido em segundos
+
+				// Atualiza o cronômetro com base no tempo real
+				if (!isProgressive) {
+					const newTimer = focusTime * 60 - elapsedSeconds;
+					setTimer(newTimer > 0 ? newTimer : 0); // Não permite que o timer vá abaixo de zero
+				} else {
+					setTimer(elapsedSeconds); // Para o modo progressivo
 				}
 
 				if (!isRest) {
-					const focusDuration = isProgressive ? timer : focusTime * 60 - timer;
+					const focusDuration = isProgressive ? elapsedSeconds : focusTime * 60 - elapsedSeconds;
 					setPredictedRestTime(calculateRestTime(focusDuration / 60));
 				}
 
@@ -105,9 +111,10 @@ function App() {
 		}
 
 		return () => clearInterval(interval);
-	}, [isRunning, isPaused, timer, isProgressive, isRest, focusTime, hasAlerted]);
+	}, [isRunning, isPaused, startTime, timer, isProgressive, isRest, focusTime, hasAlerted]);
 
 	const startFocusSession = () => {
+		setStartTime(Date.now()); // Registra o timestamp inicial
 		setTimer(focusTime * 60);
 		setIsRunning(true);
 		setIsPaused(false);
