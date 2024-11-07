@@ -1,38 +1,139 @@
+body {
+	background-color: #C7C8CC
+}
+
 .App {
-  text-align: center;
+	font-family: Arial, sans-serif;
+	text-align: center;
+	background-color: #C7C8CC;
+	height: 100vh;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.tabela {
+	width: 400px;
+	background-color: #A6AEBF;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.button {
+	background-color: #C5D3E8;
+	font-size: 15px;
+	border-radius: 12px;
+	border: none;
+	padding: 10px 20px;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+	font-weight: bold;
+	margin: 1px 4px;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.button:hover {
+	background-color: #A1B3D6;
+	/* Cor de fundo do botão quando o mouse passa sobre */
 }
 
-.App-link {
-  color: #61dafb;
+table {
+	margin: 20px auto;
+	border-collapse: collapse;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+th,
+td {
+	border: 1px solid #ddd;
+	padding: 8px;
+}
+
+th {
+	background-color: #f2f2f2;
+	text-align: center;
+}
+
+.titulo {
+	margin-top: 20px;
+}
+
+.inputTime::-webkit-outer-spin-button,
+.inputTime::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+.totals {
+	font-weight: bold;
+}
+
+.botaoZerarSaldo {
+	font-weight: bold;
+	font-size: 15px;
+}
+
+.time {
+	font-size: 24px;
+	font-weight: bold;
+	color: #295F98;
+}
+
+.focusButton {
+	font-weight: bold;
+	font-size: 15px;
+}
+
+.divFocusTime {
+	align-items: center;
+	justify-content: center;
+	font-weight: bold;
+}
+
+.inputTime {
+	max-width: 42px;
+	text-align: center;
+	font-size: 22px;
+	font-weight: bold;
+	color: #295F98;
+	background-color: transparent;
+	border: none;
+	transform: translateY(-1px);
+}
+
+.estimatedRestParag {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.estimatedRest {
+	color: #295F98;
+	font-size: 18px;
+	transform: translateY(0.5px);
+	margin-left: 5px;
+}
+
+.restTime {
+	font-weight: bold;
+	font-size: 18px;
+	margin-bottom: 40px;
+}
+
+.restTimeTime {
+	color: #295F98;
+	font-size: 22px;
+	display: flex;
+	justify-content: center;
+	transform: translateY(10px);
+}
+
+.timeAndMinutes {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	max-height: 30px;
+	margin-top: 12px;
+}
+
+.minutesText {
+	margin-left: 5px;
+	font-size: 17px;
+}
+
+.focusText {
+	font-size: 18px;
 }

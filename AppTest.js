@@ -14,8 +14,8 @@ import "./App.css";
 // Dados da tabela inicial e final
 const FOCUS_START = 1;
 const FOCUS_END = 180;
-// const REST_START = 0.2;
-// const REST_END = 72.54;
+const REST_START = 0.2;
+const REST_END = 72.54;
 const INDEX_START = 0.19536;
 const INDEX_END = 0.403;
 
@@ -38,6 +38,10 @@ function calculateRestTime(focusTime) {
 	return Math.round(restTime * 60); // Converte para segundos
 }
 
+// Exemplo de uso
+const focusTime = 10; // Tempo de foco em minutos
+const restTimeInSeconds = calculateRestTime(focusTime);
+
 function App() {
 	const [focusTime, setFocusTime] = useState(30); // Tempo de foco inicial configurado pelo usuário
 	const [isRunning, setIsRunning] = useState(false);
@@ -53,14 +57,12 @@ function App() {
 	const [totalRestTime, setTotalRestTime] = useState(0); // Total de descanso, somando permitido e excedente
 	const [focusTimeSpent, setFocusTimeSpent] = useState(0); // Tempo total de foco utilizado na sessão
 	const [lastDeletedSession, setLastDeletedSession] = useState(null);
-	const [hasAlerted, setHasAlerted] = useState(false);
-
 	const [balance, setBalance] = useState(() => {
 		return parseInt(localStorage.getItem("balance")) || 0;
 	});
 
 	const resetBalance = () => {
-		const confirmed = window.confirm("Are you sure you want to reset your balance?");
+		const confirmed = window.confirm("Tem certeza de que deseja zerar o saldo?");
 		if (confirmed) {
 			setBalance(0); // Zera o saldo
 		}
@@ -75,18 +77,18 @@ function App() {
 		setPredictedRestTime(calculatedRestTime);
 	}, [focusTime]);
 
-	// Adiciona um estado para verificar se o alerta já foi disparado
-
 	useEffect(() => {
 		let interval = null;
 
+		// Quando o cronômetro estiver rodando e não estiver em pausa
 		if (isRunning && !isPaused) {
 			interval = setInterval(() => {
 				if (timer > 0 && !isProgressive) {
 					setTimer((prevTimer) => prevTimer - 1);
 				} else if (timer === 0 && !isProgressive) {
-					setIsProgressive(true);
-					setTimer(isRest ? 0 : focusTime * 60);
+					alert("Rest time is over!"); // Exibe o alert apenas uma vez
+					setIsRunning(false); // Encerra o descanso
+					clearInterval(interval); // Limpa o intervalo
 				} else if (isProgressive) {
 					setTimer((prevTimer) => prevTimer + 1);
 				}
@@ -96,16 +98,18 @@ function App() {
 					setPredictedRestTime(calculateRestTime(focusDuration / 60));
 				}
 
-				// Verifica se o alerta já foi disparado
-				if (isRest && timer === 0 && !hasAlerted) {
-					setHasAlerted(true);
+                	// Se o tempo de descanso atingir 0, dispara o alert
+				if (isRest && timer === 0) {
 					alert("Seu tempo de descanso acabou!");
 				}
 			}, 1000);
 		}
 
-		return () => clearInterval(interval);
-	}, [isRunning, isPaused, timer, isProgressive, isRest, focusTime, hasAlerted]);
+            }, 1000);
+		}
+
+		return () => clearInterval(interval); 
+	}, [isRunning, isPaused, timer, isProgressive, isRest, focusTime]);
 
 	const startFocusSession = () => {
 		setTimer(focusTime * 60);
@@ -244,6 +248,7 @@ function App() {
 		addSessionToTable("Skipped"); // Adiciona a sessão com "Skipped" no descanso
 		resetSession(); // Reseta para próxima sessão
 	};
+
 	// Função para calcular a quantidade de sessões de foco realizadas no dia
 	const getTotalSessions = () => sessions.length;
 
@@ -280,88 +285,50 @@ function App() {
 
 	return (
 		<div className="App">
-			<h1 className="titulo">Pomodore</h1>
+			<h1>Ultimate Pomodore</h1>
 			{!isRunning && !isRest && (
-				<div className="divFocusTime">
-					<div className="divFocusGeral">
-						<label className="focusText" htmlFor="focusTime">
-							Focus:{" "}
-						</label>
-						<div className="timeAndMinutes">
-							<input
-								type="number"
-								id="focusTime"
-								min="1"
-								max="180"
-								value={focusTime}
-								onChange={(e) => setFocusTime(Math.floor(Number(e.target.value)))}
-								step="1" // Permite apenas inteiros
-								className="inputTime"
-							/>{" "}
-							<p className="minutesText">minutes</p>
-						</div>
-					</div>
-					<div>
-						<p className="estimatedRestParag">
-							Estimated Rest:
-							<div className="estimatedRest">{formatTime(predictedRestTime)}</div>
-						</p>
-					</div>
-				</div>
-			)}
-
-			{/* Exibe os botões "Start Rest" e "Skip Rest" quando o foco foi finalizado, mas o descanso ainda não começou */}
-			{showRest && !isRest && (
 				<>
-					<button className="button" onClick={startRestSession}>
-						Start Rest
-					</button>
-					<button className="button" onClick={skipRestSession}>
-						Skip Rest
-					</button>
+					<label htmlFor="focusTime">Focus time: </label>
+					<input
+						type="number"
+						id="focusTime"
+						min="1"
+						max="180"
+						value={focusTime}
+						onChange={(e) => setFocusTime(Math.floor(Number(e.target.value)))}
+						step="1" // Permite apenas inteiros
+						className="inputTime"
+					/>{" "}
+					minutes
+					<p>Estimated rest: {formatTime(predictedRestTime)}</p>
 				</>
 			)}
 
-			{/* Exibe o botão "End Rest" quando estamos no descanso */}
-			{isRest && (
-				<button className="button focusButton" onClick={finishRestSession}>
-					End Rest
-				</button>
+			{isRunning && !isRest && <p>Rest time: {formatTime(predictedRestTime)}</p>}
+
+			{showRest && (
+				<>
+					<button onClick={startRestSession}>Start Rest</button>
+					<button onClick={skipRestSession}>Skip Rest</button>
+				</>
 			)}
 
-			{/* Exibe o botão "Start Focus" se a sessão de descanso não estiver sendo exibida e não estamos em descanso */}
-			{!(showRest || isRest) && (
-				<button
-					className="button focusButton"
-					onClick={isRest ? finishRestSession : isRunning ? endFocusSession : startFocusSession}>
-					{isRest ? "End Rest" : isRunning ? "End Focus" : "Start Focus"}
-				</button>
-			)}
+			<button
+				onClick={isRest ? finishRestSession : isRunning ? endFocusSession : startFocusSession}>
+				{isRest ? "End Rest" : isRunning ? "End Focus" : "Start Focus"}
+			</button>
 
 			{isRunning && !isRest && (
-				<button className="button" onClick={() => setIsPaused(!isPaused)}>
+				<button onClick={() => setIsPaused(!isPaused)}>
 					{isPaused ? "Resume Focus" : "Pause Focus"}
 				</button>
 			)}
 
 			<h2>Time:</h2>
-			<p className="time">{formatTime(timer)}</p>
+			<p>{formatTime(timer)}</p>
 
-			{isRunning && !isRest && (
-				<p className="restTime">
-					Rest time: <span className="restTimeTime">{formatTime(predictedRestTime)}</span>
-				</p>
-			)}
-
-			<p style={{ fontSize: "20px", fontWeight: "bold", color: balance >= 0 ? "green" : "red" }}>
-				{balance >= 0 ? `Credit: ${formatTime(balance)}` : `Debt: ${formatTime(Math.abs(balance))}`}
-			</p>
-
-			<button className="button botaoZerarSaldo" onClick={resetBalance}>
-				Reset Balance
-			</button>
-
-			<table className="tabela">
+			<h2>Sessions</h2>
+			<table>
 				<thead>
 					<tr>
 						<th>Session #</th>
@@ -371,37 +338,38 @@ function App() {
 					</tr>
 				</thead>
 				<tbody>
-					<tr>
-						<td className="totals">{getTotalSessions()}</td>
-						<td className="totals">{formatTime(getTotalFocusTime())}</td>
-						<td className="totals">{formatTime(getTotalRestTime())}</td>
-						<td>
-							<button className="button" onClick={resetDay}>
-								Reset Day
-							</button>
-						</td>
-					</tr>
 					{sessions.map((session, index) => (
 						<tr key={index}>
 							<td>{session.session}</td>
 							<td>{session.focus}</td>
 							<td>{session.rest}</td>
 							<td>
-								<button className="button" onClick={() => deleteSession(index)}>
-									Delete
-								</button>
+								<button onClick={() => deleteSession(index)}>Delete</button>
 							</td>
 						</tr>
 					))}
 					{/* Linha de Totais */}
+					<tr>
+						<td>Total Sessions: {getTotalSessions()}</td>
+						<td>Total Focus Time: {formatTime(getTotalFocusTime())}</td>
+						<td>Total Rest Time: {formatTime(getTotalRestTime())}</td>
+						<td>
+							<button onClick={resetDay}>Reset Day</button>
+						</td>
+					</tr>
 				</tbody>
 			</table>
 
 			{lastDeletedSession && (
-				<button className="button" onClick={restoreLastDeletedSession}>
-					Restore last section
-				</button>
+				<button onClick={restoreLastDeletedSession}>Restore last section</button>
 			)}
+
+			<h2>Balance:</h2>
+			<p>
+				{balance >= 0 ? `Credit: ${formatTime(balance)}` : `Debt: ${formatTime(Math.abs(balance))}`}
+			</p>
+
+			<button onClick={resetBalance}>Zerar Saldo</button>
 		</div>
 	);
 }
